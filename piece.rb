@@ -1,6 +1,8 @@
 require 'byebug'
 require 'colorize'
 
+class InvalidMoveError < ArgumentError; end
+
 class Piece
 	attr_reader :color
 	attr_accessor :board, :position
@@ -21,12 +23,8 @@ class Piece
 		symbol.colorize(color)
 	end
 
-	def possibly_move(current_pos, next_pos)
-		perform_slide(current_pos, next_pos) || perform_jump(current_pos, next_pos)
-	end
-
 	def perform_slide(current_pos, next_pos)
-		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil?
+		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil? && (current_pos[0] - next_pos[0]).abs == 1
 			board.move(current_pos, next_pos)
 			return true
 		end
@@ -35,7 +33,8 @@ class Piece
 
 	def perform_jump(current_pos, next_pos)
 		spot_between = [(current_pos[0] + next_pos[0]) / 2, (current_pos[1] + next_pos[1]) / 2]
-		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil?
+
+		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil? && (current_pos[0] - next_pos[0]).abs == 2
 			unless @board[spot_between].nil? || @board[spot_between].color == color
 				@board.move(current_pos, next_pos)
 				@board[spot_between] = nil
@@ -43,6 +42,33 @@ class Piece
 			end
 		end
 		false
+	end
+
+	def perform_moves!(sequence)
+		if sequence.length == 2 && (sequence[0][0] - sequence[1][0]).abs == 1
+			successful_move = perform_slide(sequence[0], sequence[1])
+		else
+			(0..sequence.length-2).each do |i|
+				successful_move = perform_jump(sequence[i], sequence[i + 1])
+				unless successful_move
+					return false
+				end
+			end
+		end
+		false
+	end
+
+	def perform_moves(sequence)
+		if valid_move_sequence?(sequence)
+			perform_moves!(sequence)
+		else
+			raise InvalidMoveError.new('Invalid Sequence')
+		end
+	end
+
+	def valid_move_sequence?(sequence)
+		duped_board = board.dup
+		duped_board[position].perform_moves!(sequence)
 	end
 
 	def possible_moves(position)
@@ -63,7 +89,9 @@ class Piece
 	end
 
 	def move_diffs
-		if color == :green
+		if king?
+			[[1, -1], [1, 1], [-1, -1], [-1, 1]]
+		elsif color == :green
 			[[1, -1], [1, 1]]
 		else
 			[[-1, -1], [-1, 1]]
