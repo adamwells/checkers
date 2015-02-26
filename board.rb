@@ -42,6 +42,10 @@ class Board
 		piece.position = pos
 	end
 
+	def size
+		GRID_SIZE
+	end
+
 	def [](pos)
 		x, y = pos
 		grid[x][y]

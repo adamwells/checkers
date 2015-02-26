@@ -1,4 +1,5 @@
 require 'byebug'
+require 'colorize'
 
 class Piece
 	attr_reader :color
@@ -20,39 +21,52 @@ class Piece
 		symbol.colorize(color)
 	end
 
+	def possibly_move(current_pos, next_pos)
+		perform_slide(current_pos, next_pos) || perform_jump(current_pos, next_pos)
+	end
+
 	def perform_slide(current_pos, next_pos)
-		x, y = current_pos
-		move_diffs.each do |move|
-			dx, dy = move
-			offset = [x + dx, y + dy]
-			if offset == next_pos && @board[offset].nil?
+		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil?
+			board.move(current_pos, next_pos)
+			return true
+		end
+		false
+	end
+
+	def perform_jump(current_pos, next_pos)
+		spot_between = [(current_pos[0] + next_pos[0]) / 2, (current_pos[1] + next_pos[1]) / 2]
+		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil?
+			unless @board[spot_between].nil? || @board[spot_between].color == color
 				@board.move(current_pos, next_pos)
+				@board[spot_between] = nil
 				return true
 			end
 		end
 		false
 	end
 
-	def perform_jump(current_pos, next_pos)
-		x, y = current_pos
-		move_diffs.each do |move|
-			dx, dy = move
-			offset = [x + (dx * 2), y + (dy * 2)]
-			if offset == next_pos && @board[offset].nil?
-				unless @board[[x + dx, y + dy]].nil? || @board[[x + dx, y + dy]].color == color
-					@board.move(current_pos, next_pos)
-					return true
-				end
-			end
+	def possible_moves(position)
+		x, y = position
+		slides = move_diffs.map do |diff|
+			dx, dy = diff
+			[x + dx, y + dy]
 		end
-		false
+
+		jumps = move_diffs.map do |diff|
+			dx, dy = diff
+			[x + (dx * 2), y + (dy * 2)]
+		end
+
+		(jumps + slides).select do |pos|
+			pos.max < board.size and pos.min >= 0
+		end
 	end
 
 	def move_diffs
 		if color == :green
 			[[1, -1], [1, 1]]
 		else
-			[[-1, -1], [-1, 1], [-2, -2], [-2, 2]]
+			[[-1, -1], [-1, 1]]
 		end
 	end
 
