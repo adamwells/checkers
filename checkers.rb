@@ -1,15 +1,38 @@
 require_relative 'board'
 
-b = Board.new
+class Checkers
+	attr_accessor :board
 
-p = Piece.new(:green)
-p2 = Piece.new(:yellow)
+	def initialize
+		@board = Board.new
+		@board.setup_board
+	end
 
-b.place_piece([2, 1], p)
-b.place_piece([3, 2], p2)
-b.render
-p p.possible_moves(p.position)
+	def play
+		until board.over?
+			system('clear')
+			board.render
+			sequence = get_move_sequence
+			board.make_move_sequence(sequence)
+		end
+	end
 
-p.perform_jump([2, 1], [4, 3])
-b.render
-p p.possible_moves(p.position)
+	def get_move_sequence
+		sequence = []
+		puts 'What is the position of the piece you\'d like to move?'
+		sequence << gets.chomp.split(',')
+
+		puts 'Enter first/next move position (\'q\' to exit).'
+		until sequence.last == ['q']
+			sequence << gets.chomp.split(',')
+			p sequence
+		end
+		sequence.pop
+		sequence.map do |el|
+			el.map { |num| num.to_i }
+		end
+	end
+end
+
+c = Checkers.new
+c.play

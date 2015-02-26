@@ -18,6 +18,14 @@ class Piece
 		@king
 	end
 
+	def check_king
+		if color == :green && position[0] == 7
+			@king = true
+		elsif color != :green && position[0] == 0
+			@king = true
+		end
+	end
+
 	def show
 		symbol = (king? ? 'K ' : 'P ')
 		symbol.colorize(color)
@@ -46,7 +54,8 @@ class Piece
 
 	def perform_moves!(sequence)
 		if sequence.length == 2 && (sequence[0][0] - sequence[1][0]).abs == 1
-			successful_move = perform_slide(sequence[0], sequence[1])
+			perform_slide(sequence[0], sequence[1])
+			return true
 		else
 			(0..sequence.length-2).each do |i|
 				successful_move = perform_jump(sequence[i], sequence[i + 1])
@@ -64,6 +73,7 @@ class Piece
 		else
 			raise InvalidMoveError.new('Invalid Sequence')
 		end
+		check_king
 	end
 
 	def valid_move_sequence?(sequence)
