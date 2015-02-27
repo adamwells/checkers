@@ -6,6 +6,7 @@ class Checkers
 	def initialize
 		@board = Board.new
 		@board.setup_board
+		@turn = :yellow
 	end
 
 	def play
@@ -13,24 +14,44 @@ class Checkers
 			system('clear')
 			board.render
 			sequence = get_move_sequence
+
+			raise ArgumentError.new('Cannot move pieces belonging to the other player!') if board[sequence[0]].color != @turn
 			board.make_move_sequence(sequence)
+
+			@turn = (@turn == :yellow ? :green : :yellow)
 		end
+
+	rescue InvalidMoveError => e
+		puts e.message
+		sleep(2)
+		retry
+	rescue ArgumentError => e
+		puts e.message
+		sleep(2)
+		retry
+	end
+
+	def parse!(sequence)
+		sequence.pop
+		sequence.map! do |el|
+			el.map { |num| num.to_i }
+		end
+
+		sequence.map! { |el| [7 - el[0], el[1]]}
 	end
 
 	def get_move_sequence
 		sequence = []
-		puts 'What is the position of the piece you\'d like to move?'
-		sequence << gets.chomp.split(',')
+		puts "What is the position of the piece you'd like to move, #{@turn}? (<x>, <y> format)".colorize(@turn)
+		sequence << gets.chomp.split(',').reverse
 
-		puts 'Enter first/next move position (\'q\' to exit).'
+		puts "Enter first/next move position, #{@turn} ('q' to end sequence).".colorize(@turn)
 		until sequence.last == ['q']
-			sequence << gets.chomp.split(',')
+			sequence << gets.chomp.split(',').reverse
 			p sequence
 		end
-		sequence.pop
-		sequence.map do |el|
-			el.map { |num| num.to_i }
-		end
+
+		parse!(sequence)
 	end
 end
 

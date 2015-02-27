@@ -4,6 +4,7 @@ require 'byebug'
 
 class Board
 	GRID_SIZE = 8
+	ROWS = 3
 	attr_reader :grid
 
 	def initialize
@@ -11,12 +12,20 @@ class Board
 	end
 
 	def setup_board
-
+		grid.each_with_index do |row, i|
+			row.each_with_index do |position, j|
+				if (i + j).odd? && i < ROWS
+					grid[i][j] = Piece.new(:green, [i, j], self)
+				elsif (i + j).odd? && i >= GRID_SIZE - ROWS
+					grid[i][j] = Piece.new(:yellow, [i, j], self)
+				end
+			end
+		end
 	end
 
 	def render
 		grid.each_with_index do |row, i|
-			print "#{i} "
+			print "#{7 - i} "
 			row.each_with_index do |position, j|
 				background = ((i + j).even? ? :white : :black)
 				if self[[i, j]].nil?
@@ -31,6 +40,11 @@ class Board
 		nil
 	end
 
+	def make_move_sequence(sequence)
+		raise ArgumentError.new('Must start on a valid piece!') if self[sequence[0]].nil?
+		self[sequence[0]].perform_moves(sequence)
+	end
+
 	def move(start_pos, end_pos)
 		place_piece(end_pos, self[start_pos])
 		self[start_pos] = nil
@@ -40,6 +54,18 @@ class Board
 		self[pos] = piece
 		piece.board = self
 		piece.position = pos
+	end
+
+	def over?
+		return false
+	end
+
+	def dup
+		duped_board = Board.new
+		@grid.flatten.compact.each do |piece|
+			duped_board[piece.position] = Piece.new(piece.color, piece.position, duped_board)
+		end
+		duped_board
 	end
 
 	def size

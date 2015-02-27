@@ -54,8 +54,7 @@ class Piece
 
 	def perform_moves!(sequence)
 		if sequence.length == 2 && (sequence[0][0] - sequence[1][0]).abs == 1
-			perform_slide(sequence[0], sequence[1])
-			return true
+			successful_move = perform_slide(sequence[0], sequence[1])
 		else
 			(0..sequence.length-2).each do |i|
 				successful_move = perform_jump(sequence[i], sequence[i + 1])
@@ -64,7 +63,7 @@ class Piece
 				end
 			end
 		end
-		false
+		successful_move
 	end
 
 	def perform_moves(sequence)
@@ -100,7 +99,7 @@ class Piece
 
 	def move_diffs
 		if king?
-			[[1, -1], [1, 1], [-1, -1], [-1, 1]]
+			return [[1, -1], [1, 1], [-1, -1], [-1, 1]]
 		elsif color == :green
 			[[1, -1], [1, 1]]
 		else
