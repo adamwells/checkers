@@ -7,10 +7,10 @@ class Piece
 	attr_reader :color
 	attr_accessor :board, :position
 
-	def initialize(color, position = nil, board = nil)
+	def initialize(color, position = nil, board = nil, king = false)
 		@color = color
 		@board = board
-		@king = false
+		@king = king
 		@position = position
 	end
 
@@ -32,7 +32,9 @@ class Piece
 	end
 
 	def perform_slide(current_pos, next_pos)
-		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil? && (current_pos[0] - next_pos[0]).abs == 1
+		return false unless (current_pos[0] - next_pos[0]).abs == 1
+
+		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil?
 			board.move(current_pos, next_pos)
 			return true
 		end
@@ -41,8 +43,9 @@ class Piece
 
 	def perform_jump(current_pos, next_pos)
 		spot_between = [(current_pos[0] + next_pos[0]) / 2, (current_pos[1] + next_pos[1]) / 2]
+		return false unless (current_pos[0] - next_pos[0]).abs == 2
 
-		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil? && (current_pos[0] - next_pos[0]).abs == 2
+		if possible_moves(current_pos).include?(next_pos) && @board[next_pos].nil?
 			unless @board[spot_between].nil? || @board[spot_between].color == color
 				@board.move(current_pos, next_pos)
 				@board[spot_between] = nil
@@ -82,6 +85,7 @@ class Piece
 
 	def possible_moves(position)
 		x, y = position
+		
 		slides = move_diffs.map do |diff|
 			dx, dy = diff
 			[x + dx, y + dy]
@@ -105,8 +109,5 @@ class Piece
 		else
 			[[-1, -1], [-1, 1]]
 		end
-	end
-
-	def maybe_promote
 	end
 end

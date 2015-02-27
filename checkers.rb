@@ -29,6 +29,14 @@ class Checkers
 		puts e.message
 		sleep(2)
 		retry
+	rescue InvalidMoveError => e
+		puts "That move sequence doesn't work!"
+		sleep(2)
+		retry
+	rescue => e
+		puts "Something went wrong... Sorry!"
+		sleep(2)
+		retry
 	end
 
 	def parse!(sequence)

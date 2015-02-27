@@ -25,7 +25,7 @@ class Board
 
 	def render
 		grid.each_with_index do |row, i|
-			print "#{7 - i} "
+			print "#{GRID_SIZE - (i + 1)} "
 			row.each_with_index do |position, j|
 				background = ((i + j).even? ? :white : :black)
 				if self[[i, j]].nil?
@@ -63,7 +63,7 @@ class Board
 	def dup
 		duped_board = Board.new
 		@grid.flatten.compact.each do |piece|
-			duped_board[piece.position] = Piece.new(piece.color, piece.position, duped_board)
+			duped_board[piece.position] = Piece.new(piece.color, piece.position, duped_board, piece.king?)
 		end
 		duped_board
 	end
