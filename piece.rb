@@ -85,7 +85,7 @@ class Piece
 
   def possible_moves(position)
     x, y = position
-    
+
     slides = move_diffs.map do |diff|
       dx, dy = diff
       [x + dx, y + dy]
